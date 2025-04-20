@@ -78,13 +78,18 @@ router.post('/register', async (req, res) => {
  *         description: User logged in successfully
  */
 router.post('/login', passport.authenticate('local'), (req, res) => {
+    try {
+        const token = jwt.sign({ id: req.user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        res.json({
+            message: 'Login successful',
+            user: req.user,
+            token,
+        });
+    } catch (err) {
+        console.log(err);
+    }
     // Return the user object along with JWT token
-    const token = jwt.sign({ id: req.user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    res.json({
-        message: 'Login successful',
-        user: req.user,
-        token,
-    });
+
 });
 
 /**

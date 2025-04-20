@@ -21,6 +21,13 @@ let uploadRouter = require('./routes/upload');
 let apiRouter = require('./Router');
 
 var app = express();
+
+app.use(cors({
+  origin: '*',             // Allow all origins
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+
 app.use(express.json());
 
 mongoose.connect(`${process.env.MONGO_URI}`);
