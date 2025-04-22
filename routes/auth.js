@@ -77,19 +77,38 @@ router.post('/register', async (req, res) => {
  *       200:
  *         description: User logged in successfully
  */
-router.post('/login', passport.authenticate('local'), (req, res) => {
-    try {
-        const token = jwt.sign({ id: req.user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-        res.json({
-            message: 'Login successful',
-            user: req.user,
-            token,
-        });
-    } catch (err) {
-        console.log(err);
-    }
-    // Return the user object along with JWT token
+router.post('/login', (req, res, next) => {
+    passport.authenticate('local', (err, user, info) => {
+        if (err) {
+            console.error('Authentication error:', err);
+            return res.status(500).json({ message: 'Server error. Please try again later.' });
+        }
 
+        if (!user) {
+            // Passport sends failure message in 'info.message'
+            return res.status(401).json({ message: info?.message || 'Login failed: Invalid email or password.' });
+        }
+
+        // Log in the user manually
+        req.logIn(user, (err) => {
+            if (err) {
+                console.error('Login error:', err);
+                return res.status(500).json({ message: 'Login failed. Please try again.' });
+            }
+
+            // Generate JWT token
+            const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+                expiresIn: '7d',
+            });
+
+            // Send response
+            res.json({
+                message: 'Login successful',
+                user,
+                token,
+            });
+        });
+    })(req, res, next);
 });
 
 /**
