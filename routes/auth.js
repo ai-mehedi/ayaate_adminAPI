@@ -83,7 +83,6 @@ router.post('/login', (req, res, next) => {
             console.error('Authentication error:', err);
             return res.status(500).json({ message: 'Server error. Please try again later.' });
         }
-
         if (!user) {
             // Passport sends failure message in 'info.message'
             return res.status(401).json({ message: info?.message || 'Login failed: Invalid email or password.' });

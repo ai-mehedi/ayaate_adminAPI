@@ -57,7 +57,7 @@ const router = express.Router();
  */
 router.post('/', async (req, res) => {
     try {
-        const { title, slug, description, metaTitle, metaDescription, metaKeyword } = req.body;
+        const { title, slug, description, metaTitle, metaDescription, metaKeyword,navigation } = req.body;
 
         // Check if the slug already exists
         const existingCategory = await Category.findOne({ slug });
@@ -71,7 +71,7 @@ router.post('/', async (req, res) => {
             description,
             metaTitle,
             metaDescription,
-            metaKeyword
+            metaKeyword,navigation
         });
 
         await category.save();
@@ -96,7 +96,7 @@ router.get('/', async (req, res) => {
         const categories = await Category.find();
         res.status(200).json(categories);
     } catch (err) {
-        res.status(400).json({ message: err.message });
+        console.log(err);
     }
 });
 

@@ -12,6 +12,7 @@ passport.deserializeUser(async (id, done) => {
 });
 
 passport.use(new LocalStrategy({ usernameField: 'email' }, async (email, password, done) => {
+    console.log(email)
     const user = await User.findOne({ email });
     if (!user) return done(null, false);
     const match = await bcrypt.compare(password, user.password);

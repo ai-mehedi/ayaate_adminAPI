@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
-
+const bcrypt = require('bcrypt');
 /**
  * @swagger
  * /users:
@@ -88,9 +88,23 @@ router.get('/:id', async (req, res) => {
  *         description: Bad request
  */
 router.post('/', async (req, res) => {
-  const user = new User(req.body);
-  const saved = await user.save();
-  res.status(201).json(saved);
+  try {
+    const { password, ...rest } = req.body;
+
+    // Hash the password if it exists (manual auth)
+    const hashedPassword = password ? await bcrypt.hash(password, 10) : undefined;
+
+    const user = new User({
+      ...rest,
+      password: hashedPassword,
+    });
+
+    const savedUser = await user.save();
+    res.status(201).json(savedUser);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to create user' });
+  }
 });
 
 /**
