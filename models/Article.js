@@ -13,13 +13,13 @@ const articleSchema = new Schema({
 
   type: { type: String, enum: ['article', 'comparison', 'review'], default: 'article' },
 
-  digitalsoftware: {
+  digitalsoftware: [{
     image: { type: String, trim: true },
     title: { type: String, trim: true },
     description: { type: String, trim: true },
     affiliate_url: { type: String, trim: true },
     subscription: { type: String, trim: true }
-  },
+  }],
 
   product: [
     {

@@ -78,3 +78,4 @@ const comparisonSchema = new mongoose.Schema({
 });
 
 module.exports = mongoose.model('Comparison', comparisonSchema);
+
