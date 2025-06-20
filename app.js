@@ -23,9 +23,8 @@ let apiRouter = require('./Router');
 var app = express();
 
 app.use(cors({
-  origin: '*',             // Allow all origins
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  origin: 'http://localhost:3000', // your Next.js frontend
+  credentials: true
 }));
 
 app.use(express.json());
@@ -43,6 +42,7 @@ db.once('open', () => {
 db.on('error', (err) => {
   console.error('MongoDB connection error:', err);
 });
+app.use(express.urlencoded({ extended: true }));
 
 app.use(session({
   secret: 'secret_key',

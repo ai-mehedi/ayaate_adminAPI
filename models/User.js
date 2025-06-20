@@ -12,7 +12,7 @@ const UserSchema = new mongoose.Schema(
         facebookId: { type: String },
 
         profilePic: { type: String },
-        role: { type: String, enum: ['user', 'admin'], default: 'user' },
+        role: { type: String, enum: ['user', 'admin', 'moderator'], default: 'user' },
         status: { type: String, enum: ['active', 'inactive'], default: 'active' },
 
         // Optional extra fields

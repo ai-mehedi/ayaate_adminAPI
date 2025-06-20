@@ -110,6 +110,46 @@ router.post('/login', (req, res, next) => {
     })(req, res, next);
 });
 
+router.post('/adminlogin', (req, res, next) => {
+    passport.authenticate('local', (err, user, info) => {
+console.log('Admin login attempt:', req.body);
+console.log('User:', user);
+console.log('Info:', info);
+        if (err) {
+            console.error('Authentication error:', err);
+            return res.status(500).json({ message: 'Server error. Please try again later.' });
+        }
+        if (!user) {
+            // Passport sends failure message in 'info.message'
+            return res.status(401).json({ message: info?.message || 'Login failed: Invalid email or password.' });
+        }
+
+        // Log in the user manually
+        req.logIn(user, (err) => {
+            if (err) {
+                console.error('Login error:', err);
+                return res.status(500).json({ message: 'Login failed. Please try again.' });
+            }
+            else if (user.role !== 'admin') {
+                return res.status(403).json({ message: 'Access denied. Admins only.' });
+            }
+            // Generate JWT token
+            const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+                expiresIn: '7d',
+            });
+
+            // Send response
+            res.json({
+                message: 'Login successful',
+                user,
+                token,
+            });
+        });
+    })(req, res, next);
+});
+
+
+
 /**
  * @swagger
  * /auth/logout:
