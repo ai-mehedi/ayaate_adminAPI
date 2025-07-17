@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Subscriber = require('../models/subscriber');
+const sendResponse = require('../utils/responseHelper');
 
 // @route   POST /api/subscribers
 // @desc    Subscribe a new email
@@ -12,14 +13,16 @@ router.post('/', async (req, res) => {
         if (!email) return res.status(400).json({ message: 'Email is required' });
 
         const existing = await Subscriber.findOne({ email });
-        if (existing) return res.status(400).json({ message: 'Email already subscribed' });
+        if (existing) {
+            return sendResponse(res, 400, 'error', 'Email already subscribed');
+        }
 
         const subscriber = new Subscriber({ email });
         await subscriber.save();
 
-        res.status(201).json({ message: 'Subscribed successfully', subscriber });
+        return sendResponse(res, 201, 'success', 'Subscribed successfully', subscriber);
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        return sendResponse(res, 500, 'error', 'Something went wrong');
     }
 });
 
@@ -29,9 +32,9 @@ router.post('/', async (req, res) => {
 router.get('/', async (req, res) => {
     try {
         const subscribers = await Subscriber.find().sort({ createdAt: -1 });
-        res.json(subscribers);
+        return sendResponse(res, 200, 'success', 'Subscribers fetched successfully', subscribers);
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        return sendResponse(res, 500, 'error', 'Something went wrong');
     }
 });
 
@@ -48,11 +51,13 @@ router.put('/unsubscribe', async (req, res) => {
             { new: true }
         );
 
-        if (!updated) return res.status(404).json({ message: 'Subscriber not found' });
+        if (!updated) {
+            return sendResponse(res, 404, 'error', 'Subscriber not found');
+        }
 
-        res.json({ message: 'Unsubscribed successfully', updated });
+        return sendResponse(res, 200, 'success', 'Unsubscribed successfully', updated);
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        return sendResponse(res, 500, 'error', 'Something went wrong');
     }
 });
 
@@ -63,11 +68,13 @@ router.delete('/:id', async (req, res) => {
     try {
         const deleted = await Subscriber.findByIdAndDelete(req.params.id);
 
-        if (!deleted) return res.status(404).json({ message: 'Subscriber not found' });
+        if (!deleted){
+            return sendResponse(res, 404, 'error', 'Subscriber not found');
+        }
 
-        res.json({ message: 'Subscriber deleted successfully' });
+        return sendResponse(res, 200, 'success', 'Subscriber deleted successfully');
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        return sendResponse(res, 500, 'error', 'Something went wrong');
     }
 });
 

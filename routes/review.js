@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const Review = require('../models/Review');
 
+
+const sendResponse = require('../utils/responseHelper');
 /**
  * @swagger
  * components:
@@ -115,9 +117,9 @@ router.get('/', async (req, res) => {
       .populate('subcategory')
       .populate('author')
       .populate('comments');
-    res.json(reviews);
+    return sendResponse(res, 200, 'success', 'Reviews fetched successfully', reviews);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return sendResponse(res, 500, 'error', 'Something went wrong');
   }
 });
 
@@ -152,10 +154,12 @@ router.get('/:id', async (req, res) => {
       .populate('author')
       .populate('comments');
 
-    if (!review) return res.status(404).json({ message: 'Review not found' });
-    res.json(review);
+    if (!review) {
+      return sendResponse(res, 404, 'error', 'Review not found');
+    }
+    return sendResponse(res, 200, 'success', 'Review fetched successfully', review);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return sendResponse(res, 500, 'error', 'Something went wrong');
   }
 });
 
@@ -181,9 +185,9 @@ router.post('/', async (req, res) => {
   try {
     const review = new Review(req.body);
     const saved = await review.save();
-    res.status(201).json(saved);
+    return sendResponse(res, 201, 'success', 'Review created successfully', saved);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    return sendResponse(res, 400, 'error', 'Validation error', error.message);
   }
 });
 
@@ -217,10 +221,12 @@ router.put('/:id', async (req, res) => {
     const updated = await Review.findByIdAndUpdate(req.params.id, req.body, {
       new: true
     });
-    if (!updated) return res.status(404).json({ message: 'Review not found' });
-    res.json(updated);
+    if (!updated) {
+      return sendResponse(res, 404, 'error', 'Review not found');
+    }
+    return sendResponse(res, 200, 'success', 'Review updated successfully', updated);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    return sendResponse(res, 500, 'error', 'Something went wrong');
   }
 });
 
@@ -246,10 +252,12 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     const deleted = await Review.findByIdAndDelete(req.params.id);
-    if (!deleted) return res.status(404).json({ message: 'Review not found' });
-    res.json({ message: 'Review deleted successfully' });
+    if (!deleted){
+      return sendResponse(res, 404, 'error', 'Review not found');
+    }
+    return sendResponse(res, 200, 'success', 'Review deleted successfully');
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return sendResponse(res, 500, 'error', 'Something went wrong');
   }
 });
 

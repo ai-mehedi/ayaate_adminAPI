@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Article = require('../models/Article');
-
+const sendResponse = require('../utils/responseHelper');
 /**
  * @swagger
  * components:
@@ -99,9 +99,14 @@ router.get('/', async (req, res) => {
       .populate('subcategory')
       .populate('author')
       .populate('comments');
-    res.json(articles);
+
+
+        return sendResponse(res, 200, 'success', 'Articles fetched successfully', articles);
+
+  
   } catch (err) {
-    res.status(500).json({ message: err.message });
+
+  return sendResponse(res, 500, 'error', 'Something went wrong');
   }
 });
 
@@ -131,10 +136,14 @@ router.get('/:id', async (req, res) => {
       .populate('subcategory')
       .populate('author')
       .populate('comments');
-    if (!article) return res.status(404).json({ message: 'Article not found' });
-    res.json(article);
+    if (!article){
+      return sendResponse(res, 404, 'error', 'Not found', );
+
+    }
+    return sendResponse(res, 200, 'success', 'Articles fetched successfully', article);
+
   } catch (err) {
-    res.status(500).json({ message: err.message });
+  return sendResponse(res, 500, 'error', 'Something went wrong');
   }
 });
 
@@ -160,9 +169,10 @@ router.post('/', async (req, res) => {
   try {
     const article = new Article(req.body);
     const saved = await article.save();
-    res.status(201).json(saved);
+   return sendResponse(res, 200, 'success', 'Post Create Successfully',saved);
+
   } catch (err) {
-    res.status(400).json({ message: err.message });
+  return sendResponse(res, 500, 'error', 'Something went wrong');
   }
 });
 
@@ -196,10 +206,12 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const updated = await Article.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!updated) return res.status(404).json({ message: 'Article not found' });
-    res.json(updated);
+    if (!updated) {
+      return sendResponse(res, 404, 'error', 'Article not found');
+    }
+    return sendResponse(res, 200, 'success', 'Article updated successfully', updated);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+  return sendResponse(res, 500, 'error', 'Something went wrong');
   }
 });
 
@@ -225,10 +237,12 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     const deleted = await Article.findByIdAndDelete(req.params.id);
-    if (!deleted) return res.status(404).json({ message: 'Article not found' });
-    res.json({ message: 'Article deleted successfully' });
+    if (!deleted) {
+      return sendResponse(res, 404, 'error', 'Article not found');
+    }
+    return sendResponse(res, 200, 'success', 'Article deleted successfully');
   } catch (err) {
-    res.status(500).json({ message: err.message });
+  return sendResponse(res, 500, 'error', 'Something went wrong');
   }
 });
 

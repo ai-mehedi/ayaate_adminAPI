@@ -4,6 +4,9 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
+
+const sendResponse = require('../utils/responseHelper');
+
 /**
  * @swagger
  * tags:
@@ -33,7 +36,7 @@ const router = express.Router();
 /**
  * @swagger
  * /auth/register:
- *   post:
+ *   get:
  *     summary: Register a new user
  *     tags: [Auth]
  *     requestBody:
@@ -46,24 +49,35 @@ const router = express.Router();
  *       201:
  *         description: User registered successfully
  */
-router.post('/register', async (req, res) => {
+router.get('/register', async (req, res) => {
     try {
-        const { firstname, lastname, email, password } = req.body;
+
+        const firstname = "mehedi";
+        const lastname = "hasan";
+
+        const email = "admin@admin.com";
+        const password = "mehedi000";
+
 
         // Check if user already exists
         const existingUser = await User.findOne({ email });
         if (existingUser) {
-            return res.status(400).json({ message: 'User already exists' });
+            return sendResponse(res, 400, 'error', 'User already exists');
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
         const user = new User({ firstname, lastname, email, password: hashedPassword });
         await user.save();
 
-        res.status(201).json(user);
+        return sendResponse(res, 201, 'success', 'User registered successfully', {
+            id: user._id,
+            firstname: user.firstname,
+            lastname: user.lastname,
+            email: user.email,
+        });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ message: 'Server error' });
+        return sendResponse(res, 500, 'error', 'Something went wrong');
     }
 });
 
@@ -80,19 +94,18 @@ router.post('/register', async (req, res) => {
 router.post('/login', (req, res, next) => {
     passport.authenticate('local', (err, user, info) => {
         if (err) {
-            console.error('Authentication error:', err);
-            return res.status(500).json({ message: 'Server error. Please try again later.' });
+            return sendResponse(res, 500, 'error', 'Server error. Please try again later.');
         }
         if (!user) {
             // Passport sends failure message in 'info.message'
-            return res.status(401).json({ message: 'Login failed: Invalid email or password.' });
+            return sendResponse(res, 401, 'error', 'Login failed: Invalid email or password.');
         }
 
         // Log in the user manually
         req.logIn(user, (err) => {
             if (err) {
-                console.error('Login error:', err);
-                return res.status(500).json({ message: 'Login failed. Please try again.' });
+
+                return sendResponse(res, 500, 'error', 'Login failed. Please try again.');
             }
 
             // Generate JWT token
@@ -101,9 +114,14 @@ router.post('/login', (req, res, next) => {
             });
 
             // Send response
-            res.json({
-                message: 'Login successful',
-                user,
+            return sendResponse(res, 200, 'success', 'Login successful', {
+                user: {
+                    id: user.id,
+                    email: user.email,
+                    firstname: user.firstname,
+                    lastname: user.lastname,
+                    profilePic: user.profilePic,
+                },
                 token,
             });
         });
@@ -112,26 +130,23 @@ router.post('/login', (req, res, next) => {
 
 router.post('/adminlogin', (req, res, next) => {
     passport.authenticate('local', (err, user, info) => {
-console.log('Admin login attempt:', req.body);
-console.log('User:', user);
-console.log('Info:', info);
+
         if (err) {
-            console.error('Authentication error:', err);
-            return res.status(500).json({ message: 'Server error. Please try again later.' });
+            return sendResponse(res, 500, 'error', 'Server error. Please try again later.');
         }
         if (!user) {
             // Passport sends failure message in 'info.message'
-            return res.status(401).json({ message: info?.message || 'Login failed: Invalid email or password.' });
+            return sendResponse(res, 401, 'error', 'Login failed: Invalid email or password.');
         }
 
         // Log in the user manually
         req.logIn(user, (err) => {
             if (err) {
-                console.error('Login error:', err);
-                return res.status(500).json({ message: 'Login failed. Please try again.' });
+
+                return sendResponse(res, 500, 'error', 'Login failed. Please try again.');
             }
             else if (user.role !== 'admin') {
-                return res.status(403).json({ message: 'Access denied. Admins only.' });
+                return sendResponse(res, 403, 'error', 'Access denied. Admins only.');
             }
             // Generate JWT token
             const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
@@ -139,9 +154,14 @@ console.log('Info:', info);
             });
 
             // Send response
-            res.json({
-                message: 'Login successful',
-                user,
+            return sendResponse(res, 200, 'success', 'Login successful', {
+                user: {
+                    id: user.id,
+                    email: user.email,
+                    firstname: user.firstname,
+                    lastname: user.lastname,
+                    profilePic: user.profilePic,
+                },
                 token,
             });
         });
@@ -195,8 +215,7 @@ router.get('/google/callback',
             // Send the response with user info and JWT token
             const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-            res.json({
-                message: 'Login successful',
+            return sendResponse(res, 200, 'success', 'Login successful', {
                 user: {
                     id: user.id,
                     email: user.email,
@@ -208,7 +227,7 @@ router.get('/google/callback',
             });
         } catch (err) {
             console.error(err);
-            res.status(500).json({ message: 'Error processing your request' });
+            return sendResponse(res, 500, 'error', 'Error processing your request');
         }
     }
 );
@@ -243,9 +262,7 @@ router.get('/facebook/callback',
 
             // Send the response with user info and JWT token
             const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-
-            res.json({
-                message: 'Login successful',
+            return sendResponse(res, 200, 'success', 'Login successful', {
                 user: {
                     id: user.id,
                     email: user.email,
@@ -257,7 +274,7 @@ router.get('/facebook/callback',
             });
         } catch (err) {
             console.error(err);
-            res.status(500).json({ message: 'Error processing your request' });
+            return sendResponse(res, 500, 'error', 'Error processing your request');
         }
     }
 );

@@ -4,6 +4,7 @@ const Subcategory = require('../models/Sub-category');
 const Category = require('../models/Category');
 const router = express.Router();
 
+const sendResponse = require('../utils/responseHelper');
 /**
  * @swagger
  * tags:
@@ -66,7 +67,7 @@ router.post('/', async (req, res) => {
         // Check if the slug already exists
         const existingSubcategory = await Subcategory.findOne({ slug });
         if (existingSubcategory) {
-            return res.status(400).json({ message: 'Slug already exists' });
+           return sendResponse(res, 400, 'error', 'Subcategory with this slug already exists');
         }
 
         const subcategory = new Subcategory({
@@ -80,9 +81,9 @@ router.post('/', async (req, res) => {
         });
 
         await subcategory.save();
-        res.status(201).json(subcategory);
+        return sendResponse(res, 201, 'success', 'Subcategory created successfully', subcategory);
     } catch (err) {
-        res.status(400).json({ message: err.message });
+        return sendResponse(res, 500, 'error', 'Invalid request body');
     }
 });
 
@@ -99,9 +100,9 @@ router.post('/', async (req, res) => {
 router.get('/', async (req, res) => {
     try {
         const subcategories = await Subcategory.find().populate('parentcategory', 'title');
-        res.status(200).json(subcategories);
+        return sendResponse(res, 200, 'success', 'Subcategories fetched successfully', subcategories);
     } catch (err) {
-        res.status(400).json({ message: err.message });
+        return sendResponse(res, 500, 'error', 'Something went wrong');
     }
 });
 
@@ -130,9 +131,9 @@ router.get('/:id', async (req, res) => {
         if (!subcategory) {
             return res.status(404).json({ message: 'Subcategory not found' });
         }
-        res.status(200).json(subcategory);
+        return sendResponse(res, 200, 'success', 'Subcategory fetched successfully', subcategory);
     } catch (err) {
-        res.status(400).json({ message: err.message });
+        return sendResponse(res, 500, 'error', 'Something went wrong');
     }
 });
 
@@ -173,11 +174,11 @@ router.put('/:id', async (req, res) => {
             { new: true }
         );
         if (!subcategory) {
-            return res.status(404).json({ message: 'Subcategory not found' });
-        }
-        res.status(200).json(subcategory);
+            return sendResponse(res, 404, 'error', 'Subcategory not found');
+            }
+        return sendResponse(res, 200, 'success', 'Subcategory updated successfully', subcategory);
     } catch (err) {
-        res.status(400).json({ message: err.message });
+        return sendResponse(res, 500, 'error', 'Something went wrong');
     }
 });
 
@@ -204,11 +205,13 @@ router.delete('/:id', async (req, res) => {
     try {
         const subcategory = await Subcategory.findByIdAndDelete(req.params.id);
         if (!subcategory) {
-            return res.status(404).json({ message: 'Subcategory not found' });
+            return sendResponse(res, 404, 'error', 'Subcategory not found');
         }
-        res.status(200).json({ message: 'Subcategory deleted successfully' });
+    
+        return sendResponse(res, 200, 'success', 'Subcategory deleted successfully');
     } catch (err) {
-        res.status(400).json({ message: err.message });
+
+        return sendResponse(res, 500, 'error', 'Something went wrong');
     }
 });
 

@@ -2,6 +2,9 @@ const express = require('express');
 const router = express.Router();
 const Contact = require('../models/Contact');
 
+const sendResponse = require('../utils/responseHelper');
+
+
 /**
  * @route   POST /api/contacts
  * @desc    Create a new contact entry
@@ -11,9 +14,9 @@ router.post('/', async (req, res) => {
     try {
         const contact = new Contact(req.body);
         const saved = await contact.save();
-        res.status(201).json(saved);
+     return sendResponse(res, 200, 'success', 'Contact created successfully', saved);
     } catch (err) {
-        res.status(400).json({ message: err.message });
+        return sendResponse(res, 500, 'error', 'Something went wrong');
     }
 });
 
@@ -25,9 +28,10 @@ router.post('/', async (req, res) => {
 router.get('/', async (req, res) => {
     try {
         const contacts = await Contact.find().sort({ createdAt: -1 });
-        res.json(contacts);
+       
+        return sendResponse(res, 200, 'success', 'Contacts fetched successfully', contacts);
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        return sendResponse(res, 500, 'error', 'Something went wrong');
     }
 });
 
@@ -41,9 +45,9 @@ router.get('/:id', async (req, res) => {
     try {
         const contact = await Contact.findById(req.params.id);
         if (!contact) return res.status(404).json({ message: 'Contact not found' });
-        res.json(contact);
+        return sendResponse(res, 200, 'success', 'Contact fetched successfully', contact);
     } catch (err) {
-        res.status(500).json({ message: err.message });
+       return sendResponse(res, 500, 'error', 'Something went wrong');
     }
 });
 
@@ -56,9 +60,9 @@ router.delete('/:id', async (req, res) => {
     try {
         const contact = await Contact.findByIdAndDelete(req.params.id);
         if (!contact) return res.status(404).json({ message: 'Contact not found' });
-        res.json({ message: 'Contact deleted successfully' });
+      return sendResponse(res, 200, 'success', 'Contact deleted successfully');
     } catch (err) {
-        res.status(500).json({ message: err.message });
+      return sendResponse(res, 500, 'error', 'Something went wrong');
     }
 });
 

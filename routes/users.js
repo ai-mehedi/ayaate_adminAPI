@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
+
+const sendResponse = require('../utils/responseHelper');
 /**
  * @swagger
  * /users:
@@ -22,9 +24,11 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   const id = req.params.id
   const user = await User.findById({ _id: id });
-  if (!user) return res.status(404).json({ message: 'User not found' });
+  if (!user) {
+    return sendResponse(res, 404, 'error', 'User not found');
+  }
 
-  return res.status(200).json({ message: 'User found', user });
+  return sendResponse(res, 200, 'success', 'User fetched successfully', user);
 
 });
 
@@ -103,10 +107,10 @@ router.post('/', async (req, res) => {
     });
 
     const savedUser = await user.save();
-    res.status(201).json(savedUser);
+    return sendResponse(res, 201, 'success', 'User created successfully', savedUser);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Failed to create user' });
+    return sendResponse(res, 500, 'error', 'Bad request');
   }
 });
 
@@ -118,7 +122,10 @@ router.post('/', async (req, res) => {
  */
 router.put('/:id', async (req, res) => {
   const updated = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
-  res.json(updated);
+  if (!updated) {
+    return sendResponse(res, 404, 'error', 'User not found');
+  }
+  return sendResponse(res, 200, 'success', 'User updated successfully', updated);
 });
 
 /**
@@ -132,19 +139,19 @@ router.delete('/:id', async (req, res) => {
     const userId = req.params.id;
 
     if (!userId || userId === 'undefined') {
-      return res.status(400).json({ error: 'Invalid user ID' });
+      return sendResponse(res, 400, 'error', 'Invalid user ID');
     }
 
     const deletedUser = await User.findByIdAndDelete(userId);
 
     if (!deletedUser) {
-      return res.status(404).json({ error: 'User not found' });
+      return sendResponse(res, 404, 'error', 'User not found');
     }
 
-    res.json({ message: 'User deleted successfully' });
+    return sendResponse(res, 200, 'success', 'User deleted successfully');
   } catch (error) {
     console.error('Delete error:', error);
-    res.status(500).json({ error: 'Server error' });
+    return sendResponse(res, 500, 'error', 'Something went wrong');
   }
 });
 module.exports = router;

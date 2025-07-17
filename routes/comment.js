@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Comment = require('../models/Comment');
-
+const sendResponse = require('../utils/responseHelper');
 /**
  * @swagger
  * tags:
@@ -56,9 +56,9 @@ router.post('/', async (req, res) => {
   try {
     const comment = new Comment(req.body);
     await comment.save();
-    res.status(201).json(comment);
+    return sendResponse(res, 200, 'success', 'Comment created successfully', comment);
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    return sendResponse(res, 500, 'error', 'Something went wrong');
   }
 });
 
@@ -75,9 +75,9 @@ router.post('/', async (req, res) => {
 router.get('/', async (req, res) => {
   try {
     const comments = await Comment.find().populate('userId').populate('postId');
-    res.json(comments);
+    return sendResponse(res, 200, 'success', 'Comments fetched successfully', comments);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    return sendResponse(res, 500, 'error', 'Something went wrong');
   }
 });
 
@@ -104,9 +104,9 @@ router.get('/:id', async (req, res) => {
   try {
     const comment = await Comment.findById(req.params.id).populate('userId').populate('postId');
     if (!comment) return res.status(404).json({ message: 'Comment not found' });
-    res.json(comment);
+    return sendResponse(res, 200, 'success', 'Comment fetched successfully', comment);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    return sendResponse(res, 500, 'error', 'Something went wrong');
   }
 });
 
@@ -138,10 +138,12 @@ router.get('/:id', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const comment = await Comment.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!comment) return res.status(404).json({ message: 'Comment not found' });
-    res.json(comment);
+    if (!comment){
+      return sendResponse(res, 404, 'error', 'Comment not found');
+    }
+    return sendResponse(res, 200, 'success', 'Comment updated successfully', comment);
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    return sendResponse(res, 500, 'error', 'Something went wrong');
   }
 });
 
@@ -167,10 +169,12 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     const comment = await Comment.findByIdAndDelete(req.params.id);
-    if (!comment) return res.status(404).json({ message: 'Comment not found' });
-    res.json({ message: 'Comment deleted' });
+    if (!comment) {
+      return sendResponse(res, 404, 'error', 'Comment not found');
+    }
+    return sendResponse(res, 200, 'success', 'Comment deleted successfully');
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    return sendResponse(res, 500, 'error', 'Something went wrong');
   }
 });
 

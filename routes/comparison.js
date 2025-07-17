@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Comparison = require('../models/Comparison');
-
+const sendResponse = require('../utils/responseHelper');
 /**
  * @swagger
  * components:
@@ -176,9 +176,9 @@ router.get('/', async (req, res) => {
             .populate('subcategory')
             .populate('author')
             .populate('comments');
-        res.json(comparisons);
+        return sendResponse(res, 200, 'success', 'Comparisons fetched successfully', comparisons);
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        return sendResponse(res, 500, 'error', 'Something went wrong');
     }
 });
 
@@ -193,10 +193,12 @@ router.get('/:id', async (req, res) => {
             .populate('subcategory')
             .populate('author')
             .populate('comments');
-        if (!comparison) return res.status(404).json({ message: 'Comparison not found' });
-        res.json(comparison);
+        if (!comparison){
+            return sendResponse(res, 404, 'error', 'Comparison not found');
+        }
+        return sendResponse(res, 200, 'success', 'Comparison fetched successfully', comparison);
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        return sendResponse(res, 500, 'error', 'Something went wrong');
     }
 });
 
@@ -206,9 +208,9 @@ router.post('/', async (req, res) => {
     try {
         const comparison = new Comparison(req.body);
         const saved = await comparison.save();
-        res.status(201).json(saved);
+        return sendResponse(res, 200, 'success', 'Comparison created successfully', saved);
     } catch (err) {
-        res.status(400).json({ message: err.message });
+        return sendResponse(res, 500, 'error', 'Something went wrong');
     }
 });
 
@@ -217,10 +219,12 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
     try {
         const updated = await Comparison.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        if (!updated) return res.status(404).json({ message: 'Comparison not found' });
-        res.json(updated);
+        if (!updated) {
+            return sendResponse(res, 404, 'error', 'Comparison not found');
+        }
+        return sendResponse(res, 200, 'success', 'Comparison updated successfully', updated);
     } catch (err) {
-        res.status(400).json({ message: err.message });
+        return sendResponse(res, 500, 'error', 'Something went wrong');
     }
 });
 
@@ -230,9 +234,9 @@ router.delete('/:id', async (req, res) => {
     try {
         const deleted = await Comparison.findByIdAndDelete(req.params.id);
         if (!deleted) return res.status(404).json({ message: 'Comparison not found' });
-        res.json({ message: 'Comparison deleted successfully' });
+        return sendResponse(res, 200, 'success', 'Comparison deleted successfully');
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        return sendResponse(res, 500, 'error', 'Something went wrong');
     }
 });
 

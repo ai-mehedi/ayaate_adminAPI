@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const Category = require('../models/Category');
 const router = express.Router();
+const sendResponse = require('../utils/responseHelper');
 
 /**
  * @swagger
@@ -57,12 +58,12 @@ const router = express.Router();
  */
 router.post('/', async (req, res) => {
     try {
-        const { title, slug, description, metaTitle, metaDescription, metaKeyword,navigation } = req.body;
+        const { title, slug, description, metaTitle, metaDescription, metaKeyword, navigation } = req.body;
 
         // Check if the slug already exists
         const existingCategory = await Category.findOne({ slug });
         if (existingCategory) {
-            return res.status(400).json({ message: 'Slug already exists' });
+            return sendResponse(res, 404, 'error', 'Category with this slug already exists');
         }
 
         const category = new Category({
@@ -71,13 +72,13 @@ router.post('/', async (req, res) => {
             description,
             metaTitle,
             metaDescription,
-            metaKeyword,navigation
+            metaKeyword, navigation
         });
 
         await category.save();
-        res.status(201).json(category);
+        return sendResponse(res, 200, 'success', 'Category created successfully', category);
     } catch (err) {
-        res.status(400).json({ message: err.message });
+        return sendResponse(res, 500, 'error', 'Something went wrong');
     }
 });
 
@@ -94,9 +95,9 @@ router.post('/', async (req, res) => {
 router.get('/', async (req, res) => {
     try {
         const categories = await Category.find();
-        res.status(200).json(categories);
+        return sendResponse(res, 200, 'success', 'Categories fetched successfully', categories);
     } catch (err) {
-        console.log(err);
+        return sendResponse(res, 500, 'error', 'Something went wrong');
     }
 });
 
@@ -123,11 +124,11 @@ router.get('/:id', async (req, res) => {
     try {
         const category = await Category.findById(req.params.id);
         if (!category) {
-            return res.status(404).json({ message: 'Category not found' });
+            return sendResponse(res, 404, 'error', 'Category not found');
         }
-        res.status(200).json(category);
+        return sendResponse(res, 200, 'success', 'Category fetched successfully', category);
     } catch (err) {
-        res.status(400).json({ message: err.message });
+        return sendResponse(res, 500, 'error', 'Something went wrong');
     }
 });
 
@@ -168,11 +169,12 @@ router.put('/:id', async (req, res) => {
             { new: true }
         );
         if (!category) {
-            return res.status(404).json({ message: 'Category not found' });
+            return sendResponse(res, 404, 'error', 'Category not found');
         }
-        res.status(200).json(category);
+
+        return sendResponse(res, 200, 'success', 'Update successfully', category);
     } catch (err) {
-        res.status(400).json({ message: err.message });
+        return sendResponse(res, 500, 'error', 'Something went wrong');
     }
 });
 
@@ -199,11 +201,12 @@ router.delete('/:id', async (req, res) => {
     try {
         const category = await Category.findByIdAndDelete(req.params.id);
         if (!category) {
-            return res.status(404).json({ message: 'Category not found' });
+            return sendResponse(res, 404, 'success', 'Not found');
         }
-        res.status(200).json({ message: 'Category deleted successfully' });
+        return sendResponse(res, 200, 'success', 'Deleted successfully');
+
     } catch (err) {
-        res.status(400).json({ message: err.message });
+        return sendResponse(res, 500, 'error', 'Something went wrong');
     }
 });
 
