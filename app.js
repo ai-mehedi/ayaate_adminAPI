@@ -23,7 +23,7 @@ let apiRouter = require('./Router');
 var app = express();
 
 app.use(cors({
-  origin: 'http://localhost:3000', // your Next.js frontend
+  origin: process.env.ALLOWED_ORIGIN, // your Next.js frontend
   credentials: true
 }));
 

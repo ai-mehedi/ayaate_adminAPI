@@ -85,7 +85,7 @@ router.post('/login', (req, res, next) => {
         }
         if (!user) {
             // Passport sends failure message in 'info.message'
-            return res.status(401).json({ message: info?.message || 'Login failed: Invalid email or password.' });
+            return res.status(401).json({ message: 'Login failed: Invalid email or password.' });
         }
 
         // Log in the user manually
